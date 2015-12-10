@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
-
-//Necessário para a chamada da função em um serviço.
-using System.Threading;
-
 //Necessárias para trabalhar com arquivos de texto.
 using System.IO;
-using System.Collections;
-using System.Security.Permissions;
 
 //Necessário para pegar as configurações de arquivos
 //Obs: Necessário adicionar referência para compilação do projeto.
@@ -197,20 +186,26 @@ namespace WindowsService1
                 string[] fraseSplit, dataCompleta, horaCompleta; //Vetor de string.
                 string frase, falha, site, rnc, downtime;
                 int ano, mes, dia, hora, min, idPrincipal, idSecundario;
-                string horaP, dataP, cmd;
+                string horaP, dataP, sql;
+                MySqlCommand cmd;
 
+                MySqlTransaction transaction = this.bdConn.BeginTransaction();
                 //Verifica se a conexão está aberta.
                 if (bdConn.State == ConnectionState.Open)
                 {
                     //Prepara dados para tabela Data.
-                    idPrincipal = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.date", "idDate");
                     horaP = System.DateTime.Now.ToString("HH:mm:ss");
                     dataP = System.DateTime.Now.ToString("yyyy/MM/dd");
-                    cmd = "INSERT INTO `disponibilidade`.`date`(`idDate`,`Date`,`Time`,`Tecnology_idTecnology`)";
-                    cmd = cmd + "VALUES('" + idPrincipal + "','" + dataP + "','" + horaP + "','" + ConfigurationManager.AppSettings["id3GTecnology"] + "');";
 
-                    //Insere os dados na tabela Data.
-                    bancoDeDados.inserir_dados_bd(this.bdConn, this.eventLog, cmd);
+                    //Inserção no banco
+                    sql = "INSERT INTO `disponibilidade`.`date`(`Date`,`Time`,`Tecnology_idTecnology`)";
+                    sql += "VALUES(@dataP,@horaP,@id3GTechnology);";
+                    cmd = new MySqlCommand(sql, bdConn, transaction);
+                    cmd.Parameters.AddWithValue("@dataP", dataP);
+                    cmd.Parameters.AddWithValue("@horaP", horaP);
+                    cmd.Parameters.AddWithValue("@id3GTechnology", ConfigurationManager.AppSettings["id3GTecnology"]);
+                    cmd.ExecuteNonQuery();
+                    idPrincipal = (int)cmd.LastInsertedId;
 
                     //Insere os dados na tabela detalhes_falha.
                     while ((frase = objReader.ReadLine()) != null)
@@ -237,13 +232,18 @@ namespace WindowsService1
                         dia = Convert.ToInt32(dataCompleta[2]);
 
                         //Inserir dados no BD.
-                        idSecundario = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.detalhes_falha", "idDetalhes_Falha");
-                        cmd = "INSERT INTO `disponibilidade`.`detalhes_falha`(`idDetalhes_Falha`,`Site`,`Concentrador`,`Event_Time`,`Date_idDate`, `Tipo_falha`)";
-                        cmd = cmd + "VALUES('" + idSecundario + "','" + site + "','" + rnc + "','" + ano + "-" + mes + "-" + dia + " " + hora + ":" + min + ":00','" + idPrincipal + "','" + falha + "');";
-                        bancoDeDados.inserir_dados_bd(this.bdConn, this.eventLog, cmd);
+                        sql = "INSERT INTO `disponibilidade`.`detalhes_falha`(`Site`,`Concentrador`,`Event_Time`,`Date_idDate`, `Tipo_falha`)";
+                        sql += "VALUES(@site,@rnc,@data,@idPrincipal,@falha);";
+                        cmd = new MySqlCommand(sql, bdConn, transaction);
+                        cmd.Parameters.AddWithValue("@site", site);
+                        cmd.Parameters.AddWithValue("@rnc", rnc);
+                        cmd.Parameters.AddWithValue("@data", ano + "-" + mes + "-" + dia + " " + hora + ":" + min);
+                        cmd.Parameters.AddWithValue("@idPrincipal", idPrincipal);
+                        cmd.Parameters.AddWithValue("@falha", falha);
+                        cmd.ExecuteNonQuery();
                     }
+                    transaction.Commit();
                     contaResultado(idPrincipal);
-                    this.eventLog.WriteEntry("Disponibilidade 3G inserida com sucesso!", EventLogEntryType.Information);
                 }
                 else
                 {
@@ -259,11 +259,10 @@ namespace WindowsService1
                 try
                 {
                     this.bdConn.Close();
-                    eventLog.WriteEntry("Conexão de Dados 3G fechada!");
                 }
                 catch (Exception e)
                 {
-                    eventLog.WriteEntry("Erro ao fechar conexão de dados." + e);
+                    eventLog.WriteEntry("Erro ao fechar conexão de dados 3G." + e);
                 }
             }
 
@@ -275,25 +274,30 @@ namespace WindowsService1
             //Declaração de variaveis.
             string[] fraseSplit, dataCompleta, horaCompleta; //Vetor de string.
             string frase, falha, site, bsc, downtime;
-            int ano, mes, dia, hora, min, idPrincipal, idSecundario;
-            string horaP, dataP, cmd;
-
+            int ano, mes, dia, hora, min, idPrincipal;
+            string horaP, dataP, sql;
+            MySqlCommand cmd;
             try
             {
                 this.bdConn.Open();
 
                 //Verifica se a conexão está aberta.
+                MySqlTransaction transaction = this.bdConn.BeginTransaction();
                 if (bdConn.State == ConnectionState.Open)
                 {
                     //Prepara dados para tabela Data.
-                    idPrincipal = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.date", "idDate");
                     horaP = System.DateTime.Now.ToString("HH:mm:ss");
                     dataP = System.DateTime.Now.ToString("yyyy/MM/dd");
-                    cmd = "INSERT INTO `disponibilidade`.`date`(`idDate`,`Date`,`Time`,`Tecnology_idTecnology`)";
-                    cmd = cmd + "VALUES('" + idPrincipal + "','" + dataP + "','" + horaP + "','" + ConfigurationManager.AppSettings["id2GTecnology"] + "');";
+                    sql = "INSERT INTO `disponibilidade`.`date`(`Date`,`Time`,`Tecnology_idTecnology`)";
+                    sql += "VALUES(@dataP,@horaP,@technology);";
 
-                    //Insere os dados na tabela Data.
-                    bancoDeDados.inserir_dados_bd(this.bdConn, this.eventLog, cmd);
+                    cmd = new MySqlCommand(sql, this.bdConn, transaction);
+                    cmd.Parameters.AddWithValue("@dataP", dataP);
+                    cmd.Parameters.AddWithValue("@horaP", horaP);
+                    cmd.Parameters.AddWithValue("@technology", ConfigurationManager.AppSettings["id2GTecnology"]);
+
+                    cmd.ExecuteNonQuery();
+                    idPrincipal = (int)cmd.LastInsertedId;
 
                     //Insere os dados na tabela detalhes_falha.
                     while ((frase = objReader.ReadLine()) != null)
@@ -305,13 +309,18 @@ namespace WindowsService1
                         downtime = fraseSplit[3];
                         falha = fraseSplit[4];
 
-
                         //Tratamento da data.
-                        idSecundario = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.detalhes_falha", "idDetalhes_Falha");
+                        sql = "INSERT INTO `disponibilidade`.`detalhes_falha`(`Site`,`Concentrador`,`Event_Time`,`Date_idDate`, `Tipo_falha`)";
+                        sql += "VALUES(@site,@bsc,@data,@idPrincipal,@falha);";
+                        cmd = new MySqlCommand(sql, this.bdConn, transaction);
+                        cmd.Parameters.AddWithValue("@site", site);
+                        cmd.Parameters.AddWithValue("@bsc", bsc);
+                        cmd.Parameters.AddWithValue("@idPrincipal", idPrincipal);
+                        cmd.Parameters.AddWithValue("@falha", falha);
 
-                        dataCompleta = fraseSplit[2].Split(' ');//[0]AAAA-MM-DD [1]HH:MM
                         if (!falha.Contains("LOC"))
                         {
+                            dataCompleta = fraseSplit[2].Split(' ');//[0]AAAA-MM-DD [1]HH:MM
                             horaCompleta = dataCompleta[1].Split(':');//[0]HH [1]MM
                             dataCompleta = dataCompleta[0].Split('-');//[0]AAAA [1]MM [2] DD
 
@@ -322,19 +331,16 @@ namespace WindowsService1
                             mes = Convert.ToInt32(dataCompleta[1]);
                             dia = Convert.ToInt32(dataCompleta[2]);
 
-                            cmd = "INSERT INTO `disponibilidade`.`detalhes_falha`(`idDetalhes_Falha`,`Site`,`Concentrador`,`Event_Time`,`Date_idDate`, `Tipo_falha`)";
-                            cmd = cmd + "VALUES('" + idSecundario + "','" + site + "','" + bsc + "','" + ano + "-" + mes + "-" + dia + " " + hora + ":" + min + ":00','" + idPrincipal + "','" + falha + "');";
+                            cmd.Parameters.AddWithValue("@data", ano + "-" + mes + "-" + dia + " " + hora + ":" + min);
                         }
                         else
                         {
-                            cmd = "INSERT INTO `disponibilidade`.`detalhes_falha`(`idDetalhes_Falha`,`Site`,`Concentrador`,`Event_Time`,`Date_idDate`, `Tipo_falha`)";
-                            cmd = cmd + "VALUES('" + idSecundario + "','" + site + "','" + bsc + "','" + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "','" + idPrincipal + "','" + falha + "');";
+                            cmd.Parameters.AddWithValue("@data", System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                         }
-                        //Inserir dados no BD.
-                        bancoDeDados.inserir_dados_bd(this.bdConn, this.eventLog, cmd);
+                        cmd.ExecuteNonQuery();
                     }
+                    transaction.Commit();
                     contaResultado(idPrincipal);
-                    this.eventLog.WriteEntry("Disponibilidade 2G inserida com sucesso!", EventLogEntryType.Information);
                 }
                 else
                 {
@@ -350,11 +356,10 @@ namespace WindowsService1
                 try
                 {
                     this.bdConn.Close();
-                    eventLog.WriteEntry("Conexão de Dados 2G fechada!");
                 }
                 catch (Exception e)
                 {
-                    eventLog.WriteEntry("Erro ao fechar conexão de dados." + e);
+                    eventLog.WriteEntry("Erro ao fechar conexão de dados." + e, EventLogEntryType.Error);
                 }
             }
 

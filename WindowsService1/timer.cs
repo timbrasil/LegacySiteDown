@@ -25,7 +25,9 @@ namespace WindowsService1
             }
             catch (Exception e)
             {
-
+                EventLog eventLog = new EventLog();
+                eventLog.Source = "Disponibilidade";
+                eventLog.WriteEntry("Erro no timer: " + e, EventLogEntryType.Error);
             }
             finally
             {
