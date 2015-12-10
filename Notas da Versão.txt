@@ -1,0 +1,94 @@
+#########################
+#### VERSÃO 0.55 beta ####
+#########################
+Descrição:
+-Otimização de inserts dos arquivos de alarmes no banco de dados.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.54 beta ####
+#########################
+Descrição:
+-Adicionado coleta de XML de alarmes 3G.
+
+##Definições:
+Para que o sistema saiba diferenciar arquivos 3G e 4G, eles não podem ficar na mesma pasta.
+O 3G deve ficar na 3GPath e os 4G no 4GPath. 
+Caso se inverta os arquivos, pode causar inconsistencia no BD.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.53 beta ####
+#########################
+Descrição:
+-Correção de problema de Truncamento para a nova nomeclatura do 4G 1800.
+-Correção de erro de calculo dos dados estaticos de quantidade de falhas.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.52 beta ####
+#########################
+Descrição:
+Alteração para leitura de alarmes 4G através de arquivos XML.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.5 beta ####
+#########################
+Descrição:
+Adicionado configuração para o monitoramento dos alarmes da rede 4G.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+
+
+#########################
+#### VERSÃO 0.4 beta ####
+#########################
+Descrição:
+Adicionado configuração para monitoramento de pasta 2G.
+Adicionado função para armazenar arquivos do 2G.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.3 beta ####
+#########################
+Descrição:
+Adicionado configuração para monitoramento de pasta 3G em caminho diferente da 4G.
+Adicionado função para armazenar arquivos do 3G.
+Para armazenamento do arquivo 3G, é necessário que a primeira linha contenha a tag "### Cell 3G Down ###".
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.2 beta ####
+#########################
+Descrição:
+Adicionado função para armazenar arquivos do 4G Ran Sharing, também conhecido como INTER-AS.
+Para armazenamento do arquivo 4G Inter-AS, é necessário que a primeira linha contenha a tag "### Cell 4G - Ran Sharing - Down ###".
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
+
+#########################
+#### VERSÃO 0.1 beta ####
+#########################
+Descrição:
+Armazena dados gerado por um script de coleta de site down 4G.
+Para armazenamento do arquivo, é necessário que a primeira linha contenha a tag "### Cell 4G Down ###".
+O arquivo com os dados deverá ter a extensão *.log e estar na pasta indicada nas configurações.
+
+Desenvolvido por: Igor Vasconcelos Camasso.
+Departamento: TIM Ratna.
