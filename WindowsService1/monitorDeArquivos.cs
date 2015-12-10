@@ -92,7 +92,7 @@ namespace WindowsService1
                 if (loop <= 100)
                 {
                     int sleep = 5000;
-                    eventLog.WriteEntry("Erro ao abrir o arquivo " + caminho + "\nTentando novamente em " + sleep / 1000 + " segundos\n" + e.Message,EventLogEntryType.Warning);
+                    //eventLog.WriteEntry("Erro ao abrir o arquivo " + caminho + "\nTentando novamente em " + sleep / 1000 + " segundos\n" + e.Message,EventLogEntryType.Warning);
                     System.Threading.Thread.Sleep(sleep);
                     loop++;
                     monitorDeArquivos.ler_arquivo(caminho, loop);
@@ -125,10 +125,7 @@ namespace WindowsService1
                 //eventLog.WriteEntry("Arquivo 4G validado!", EventLogEntryType.SuccessAudit);
 
                 disponibilidade disponibilidade4G = new disponibilidade();
-                disponibilidade4G.salvar_disponibilidade4G(objReader);
-
-                //Retorna que foi realizada a extração com sucesso.
-                return true;
+                return disponibilidade4G.salvar_disponibilidade4G(objReader);
             }
 
             //Testa a validação do arquivo como 4G Ran Sharing.
@@ -178,7 +175,12 @@ namespace WindowsService1
                     if (caminho.Contains("4G"))
                     {
                         alarm alarme4g = new alarm();
-                        return alarme4g.salvar_4GAlarm(caminho);
+                        Boolean result = alarme4g.salvar_4GAlarm(caminho);
+                        if (result)
+                        {
+                            alarme4g.atualizaConsultaMemoria();
+                        }
+                        return result;
                     }
                     if (caminho.Contains("3G"))
                     {

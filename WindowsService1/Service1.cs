@@ -44,6 +44,7 @@ namespace WindowsService1
                 EventLog.CreateEventSource("Disponibilidade", "Disponibilidade_log");
             }
 
+            //Monitor de arquivos - File Watch
             monitorDeArquivos monitor2g = new monitorDeArquivos();
             Thread threadMonitor2g = new Thread(() => monitor2g.monitora_arquivos(ConfigurationManager.AppSettings["Path2G"],ConfigurationManager.AppSettings["Filter"]));
 
@@ -57,11 +58,15 @@ namespace WindowsService1
             threadMonitor3g.Start();
             threadMonitor4g.Start();
 
-            Thread threadTimer4G = new Thread(() => timer.monitora_arquivo_timer(ConfigurationManager.AppSettings["Path4G"], 60000,"*.xml"));
+            //Monitor de arquivos - Timer
+            Thread threadTimer4G = new Thread(() => timer.monitora_arquivo_timer(ConfigurationManager.AppSettings["Path4G"], 60000,"*.*"));
             threadTimer4G.Start();
 
-            Thread threadTimer3G = new Thread(() => timer.monitora_arquivo_timer(ConfigurationManager.AppSettings["Path3G"], 60000,"*.xml"));
+            Thread threadTimer3G = new Thread(() => timer.monitora_arquivo_timer(ConfigurationManager.AppSettings["Path3G"], 60000,"*.*"));
             threadTimer3G.Start();
+
+            Thread threadTimer2G = new Thread(() => timer.monitora_arquivo_timer(ConfigurationManager.AppSettings["Path2G"], 60000, "*.*"));
+            threadTimer2G.Start();
 
         }
 

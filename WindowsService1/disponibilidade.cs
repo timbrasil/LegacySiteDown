@@ -36,8 +36,9 @@ namespace WindowsService1
         }
 
         //Extrai os dados do 4G do arquivo e armazena no BD.
-        public void salvar_disponibilidade4G(StreamReader objReader)
+        public Boolean salvar_disponibilidade4G(StreamReader objReader)
         {
+            bool status = true;
             try
             {
                 this.bdConn.Open();
@@ -45,24 +46,23 @@ namespace WindowsService1
                 //Declaração de variaveis.
                 string[] fraseSplit, dataCompleta, horaCompleta; //Vetor de string.
                 string frase, falha, site, sql;
-                int ano, mes, dia, hora, min, idPrincipal, idSecundario;
+                int ano, mes, dia, hora, min, idPrincipal;
                 MySqlCommand cmd;
+                string technologyId = ConfigurationManager.AppSettings["id4GTecnology"];
 
                 //Verifica se a conexão está aberta.
+                MySqlTransaction transaction = this.bdConn.BeginTransaction();
                 if (bdConn.State == ConnectionState.Open)
                 {
                     //Prepara dados para tabela Data.
-                    idPrincipal = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.date", "idDate");
-
-                    sql = "INSERT INTO `disponibilidade`.`date`(`idDate`,`Date`,`Time`,`Tecnology_idTecnology`) ";
-                    sql += "VALUES(@idPrincipal,@data,@hora,@idTecnology)";
-                    cmd = new MySqlCommand(sql, this.bdConn);
-                    cmd.Parameters.AddWithValue("@idPrincipal", idPrincipal);
+                    sql = "INSERT INTO `disponibilidade`.`date`(`Date`,`Time`,`Tecnology_idTecnology`) ";
+                    sql += "VALUES(@data,@hora,@idTecnology)";
+                    cmd = new MySqlCommand(sql, this.bdConn, transaction);
                     cmd.Parameters.AddWithValue("@data", System.DateTime.Now.ToString("yyyy-MM-dd"));
                     cmd.Parameters.AddWithValue("@hora", System.DateTime.Now.ToString("HH:mm:ss"));
-                    cmd.Parameters.AddWithValue("@idTecnology", ConfigurationManager.AppSettings["id4GTecnology"]);
-
+                    cmd.Parameters.AddWithValue("@idTecnology", technologyId);
                     cmd.ExecuteNonQuery();
+                    idPrincipal = (int)cmd.LastInsertedId;
 
                     while ((frase = objReader.ReadLine()) != null)
                     {
@@ -85,11 +85,9 @@ namespace WindowsService1
                         dia = Convert.ToInt32(dataCompleta[2]);
 
                         //Inserir dados no BD.
-                        idSecundario = bancoDeDados.get_id_database(this.bdConn, "disponibilidade.detalhes_falha", "idDetalhes_Falha");
-                        sql = "INSERT INTO `disponibilidade`.`detalhes_falha`(`idDetalhes_Falha`,`Site`,`Event_Time`,`Tipo_falha`,`Date_idDate`)";
-                        sql += "VALUES(@id,@site,@eventTime,@tipoFalha,@idDate)";
-                        cmd = new MySqlCommand(sql, this.bdConn);
-                        cmd.Parameters.AddWithValue("@id", idSecundario);
+                        sql = "INSERT INTO `disponibilidade`.`detalhes_falha`(`Site`,`Event_Time`,`Tipo_falha`,`Date_idDate`)";
+                        sql += "VALUES(@site,@eventTime,@tipoFalha,@idDate)";
+                        cmd = new MySqlCommand(sql, this.bdConn, transaction);
                         cmd.Parameters.AddWithValue("@site", site);
                         cmd.Parameters.AddWithValue("@eventTime", ano+"-"+mes+"-"+dia+" "+hora+":"+min);
                         cmd.Parameters.AddWithValue("@tipoFalha", falha);
@@ -97,17 +95,20 @@ namespace WindowsService1
 
                         cmd.ExecuteNonQuery();
                     }
+                    transaction.Commit();
                     contaResultado(idPrincipal);
 
-                    this.eventLog.WriteEntry("Disponibilidade 4G inserido com sucesso!", EventLogEntryType.Information);
+                    this.eventLog.WriteEntry("Disponibilidade 4G inserido com sucesso!", EventLogEntryType.SuccessAudit);
                 }
                 else
                 {
+                    status = false;
                     this.eventLog.WriteEntry("4G: A conexão com o banco de dados não esta aberta!", EventLogEntryType.Error);
                 }
             }
             catch (Exception e)
             {
+                status = false;
                 this.eventLog.WriteEntry("Erro ao armazenar dados do 4G!\nException: " + e, EventLogEntryType.Error);
             }
             finally
@@ -115,14 +116,13 @@ namespace WindowsService1
                 try
                 {
                     this.bdConn.Close();
-                    eventLog.WriteEntry("Conexão de Dados 4G fechada!");
                 }
                 catch (Exception e)
                 {
-                    eventLog.WriteEntry("Erro ao fechar conexão de dados." + e);
+                    eventLog.WriteEntry("Erro ao fechar conexão de dados." + e, EventLogEntryType.Error);
                 }
             }
-
+            return status;
         }
 
         //Extrai os dados do 4G ran Sharing do arquivo e armazena no BD.

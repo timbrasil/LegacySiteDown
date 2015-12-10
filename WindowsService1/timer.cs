@@ -22,15 +22,6 @@ namespace WindowsService1
                 {
                     monitorDeArquivos.ler_arquivo(file);
                 });
-
-                if (files.Length > 0)
-                {
-                    if (dir.Contains("4G"))
-                    {
-                        alarm alarme = new alarm();
-                        alarme.atualizaConsultaMemoria();
-                    }
-                }
             }
             catch (Exception e)
             {

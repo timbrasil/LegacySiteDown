@@ -34,5 +34,19 @@ namespace WindowsService1
                 eventLog.WriteEntry("Erro ao executar a instrução:\n" + comando + "\nException: " + e, EventLogEntryType.Error);
             }
         }
+
+        //Recebe instrução para inserção de dados no BD.
+        public static void inserir_dados_bd(MySqlConnection bdConn, EventLog eventLog, string comando, MySqlTransaction transaction)
+        {
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand(comando, bdConn, transaction);
+                cmd.ExecuteScalar();
+            }
+            catch (Exception e)
+            {
+                eventLog.WriteEntry("Erro ao executar a instrução:\n" + comando + "\nException: " + e, EventLogEntryType.Error);
+            }
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace WindowsService1
 
         public alarm()
         {
-            this.eventLog.Source = "Disponibilidade";
+            this.eventLog.Source = "Alarme";
         }
 
         public bool salvar_4GAlarm(String caminho)
@@ -150,7 +150,7 @@ namespace WindowsService1
                 catch (Exception e)
                 {
                     success = false;
-                    eventLog.WriteEntry("Erro ao inserir dados do arquivo " + caminho + "!\n" + e);
+                    eventLog.WriteEntry("Erro ao inserir dados do arquivo " + caminho + "!\n" + e, EventLogEntryType.Error);
                 }
                 finally
                 {
